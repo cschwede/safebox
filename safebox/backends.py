@@ -30,8 +30,6 @@ class LocalStorage(object):
         """ Write an object if not yet existing """
         filename = os.path.join(self.path, name)
 
-        data = self._convert_data_in(data)
-
         if not os.path.exists(filename):
             with open(filename, "wb") as outfile:
                 outfile.write(data)
