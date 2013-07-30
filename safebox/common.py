@@ -30,7 +30,7 @@ from rabin import rabin
 from safebox import utils
 
 
-def backup(backend, src):
+def backup(backend, src, tag="default"):
     start_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
     path = os.path.expanduser(src)
     files = utils.find_modified_files(path)
@@ -64,7 +64,7 @@ def backup(backend, src):
     j = json.dumps(files)
     meta_data = bz2.compress(j)
     suffix = ''.join(random.choice(ascii_letters + digits) for _ in range(8))
-    backup_id = "b-%s-%s" % (start_time, suffix)
+    backup_id = "b-%s-%s-%s" % (tag, start_time, suffix)
     backend.put(backup_id, meta_data)
     logging.info("Finished backup %s" % backup_id)
     return backup_id
