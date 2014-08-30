@@ -1,0 +1,1 @@
+-e git://github.com/cschwede/python-rabin-fingerprint.git#egg=rabin
