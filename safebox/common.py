@@ -31,10 +31,31 @@ from safebox import utils
 
 
 def backup(backend, src, tag="default"):
+    # Try to load old metadata from latest backup
+    old_backups = backend.list(prefix="b-*")
+    old_meta_data = {}
+    if old_backups:
+        backup_id = old_backups[-1] # latest id
+        om = backend.get(backup_id)
+        om = bz2.decompress(om)
+        try:
+            old_meta_data = json.loads(om)
+        except ValueError:
+            pass
+
     start_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
     path = os.path.expanduser(src)
     files = utils.find_modified_files(path)
     for filename, meta in files.items():
+        # Assume file is unchanged if neither mtime nor size is changed
+        old = old_meta_data.get(filename)
+        if old and old['m'] == meta['m'] and old['s'] == meta['s']:
+            old_checksum = old.get('c')
+            if old_checksum:
+                meta['c'] = old_checksum
+            logging.info("Skipped unchanged %s" % filename)
+            continue
+
         fullname = os.path.join(path, filename)
         checksum = utils.sha256_file(fullname)
         if not S_ISREG(meta['p']):  # not a file

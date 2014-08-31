@@ -21,6 +21,7 @@ import tempfile
 import unittest
 from filecmp import dircmp
 
+from mock import patch
 from safebox import backends, common, utils
 
 
@@ -53,13 +54,18 @@ class TestBackupRestore(unittest.TestCase):
     def test_backup_restore(self):
         """ Test if backup and restore works correctly """
 
-        backup_id = common.backup(self.backend, self.backup_dir)
-        common.restore(self.backend, self.restore_dir, backup_id)
+        with patch('safebox.utils.sha256_file') as mock_sha256_file:
+            backup_id = common.backup(self.backend, self.backup_dir)
+            self.assertTrue(mock_sha256_file.called)
 
-        result = dircmp(self.restore_dir, self.backup_dir)
-        self.assertFalse(result.diff_files)
-        for _, entry in result.subdirs.items():
-            self.assertFalse(entry.diff_files)
+        # Create new backup, this should reuse the last metadata set and the
+        # checksum should be reused. Metadata set should be identical
+        old_file = os.path.join(self.storage_dir, backup_id)
+        with patch('safebox.utils.sha256_file') as mock_sha256_file:
+            backup_id = common.backup(self.backend, self.backup_dir)
+            self.assertFalse(mock_sha256_file.called)
+        new_file = os.path.join(self.storage_dir, backup_id)
+        self.assertEqual(utils.sha256_file(old_file), utils.sha256_file(new_file))
 
         # Check if data deduplication works
         chunks = utils.find_modified_files(self.storage_dir)
@@ -68,6 +74,13 @@ class TestBackupRestore(unittest.TestCase):
             if filename.startswith('c-'):
                 storage_size += stat['s']
         self.assertTrue(storage_size < self.original_size)
+
+        common.restore(self.backend, self.restore_dir, backup_id)
+        result = dircmp(self.restore_dir, self.backup_dir)
+        self.assertFalse(result.diff_files)
+        for _, entry in result.subdirs.items():
+            self.assertFalse(entry.diff_files)
+
 
     def test_gc(self):
         """ Test if deletion of no longer required chunks works correctly
