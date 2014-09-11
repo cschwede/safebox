@@ -31,24 +31,21 @@ class TestLocalStorage(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.tempdir)
 
-    def test_put(self):
-        """ Test if object put is handled correctly """
+    def test_put_get(self):
+        """ Test if object put/get is handled correctly """
 
         self.backend.put("name", "content")
-        with open(os.path.join(self.tempdir, "name")) as testfile:
-            data = testfile.read()
-        self.assertEqual("content", data)
-
-    def test_get(self):
-        """ Test if object get is handled correctly """
-
-        with open(os.path.join(self.tempdir, "name"), "wb") as testfile:
-            testfile.write("content")
         data = self.backend.get("name")
         self.assertEqual("content", data)
 
         # Non-existing object
         self.assertRaises(Exception, self.backend.get, "nonexisting")
+
+    def test_fullname(self):
+        objname = "c-af2bdbe1aa9b6ec1e2ade1d694f41f"
+        reference = os.path.join(self.tempdir, "c/f4/1f", objname)
+        pathname, fullname = self.backend.fullname(objname)
+        self.assertEqual(reference, fullname)
 
 
 if __name__ == '__main__':

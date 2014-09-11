@@ -93,7 +93,8 @@ class TestBackupRestore(unittest.TestCase):
         6. Restore and ensure backup is identical to files from step 4 """
 
         backup_id = common.backup(self.backend, self.backup_dir)
-        os.remove(os.path.join(self.storage_dir, backup_id))
+        backup_path, backup_file = self.backend.fullname(backup_id)
+        os.remove(backup_file)
         os.remove(os.path.join(self.backup_dir, "x"))
         backup_id = common.backup(self.backend, self.backup_dir)
         removed = common.gc(self.backend)
