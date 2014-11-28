@@ -42,6 +42,7 @@ class TestLocalStorage(unittest.TestCase):
         self.assertRaises(Exception, self.backend.get, "nonexisting")
 
     def test_fullname(self):
+        """ Test if self.backend.fullname is working correctly """
         objname = "c-af2bdbe1aa9b6ec1e2ade1d694f41f"
         reference = os.path.join(self.tempdir, "c/f4/1f", objname)
         pathname, fullname = self.backend.fullname(objname)
