@@ -78,14 +78,14 @@ class TestBackupRestore(unittest.TestCase):
         common.restore(self.backend, self.restore_dir, backup_id)
         result = dircmp(self.restore_dir, self.backup_dir)
         self.assertFalse(result.diff_files)
-        for _, entry in result.subdirs.items():
+        for subdir, entry in result.subdirs.items():
             self.assertFalse(entry.left_only)
             self.assertFalse(entry.right_only)
             for filename in entry.diff_files:
-                old_filename = os.path.join(self.backup_dir, filename)
+                old_filename = os.path.join(self.backup_dir, subdir, filename)
                 old_stat = os.lstat(old_filename)
                 old_hash = sha256_file(old_filename)
-                new_filename = os.path.join(self.restore_dir, filename)
+                new_filename = os.path.join(self.restore_dir, subdir, filename)
                 new_stat = os.lstat(new_filename)
                 new_hash = sha256_file(new_filename)
                 print "File differs: %s, %s -> %s, %s" % (
