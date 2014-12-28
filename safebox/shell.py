@@ -4,6 +4,7 @@
 import argparse
 import logging
 import os
+import sys
 
 from safebox import backends, common
 
@@ -11,7 +12,7 @@ LOG_LEVEL = logging.INFO
 LOG_FORMAT = "%(levelname)s %(threadName)s %(asctime)s %(message)s"
 
 
-def main():
+def main(argv=sys.argv):
     """ Main function as used in CLI mode. """
     logging.basicConfig(format=LOG_FORMAT, level=LOG_LEVEL)
 
@@ -44,13 +45,13 @@ def main():
     parser_restore.add_argument(
         'path', action="store", type=str, help='Backup path')
 
-    args = parser.parse_args()
+    args = parser.parse_args(argv[1:])
 
     path = os.path.expanduser(args.path)
-    backend = backends.LocalStorage(path, args.tag)
+    backend = backends.LocalStorage(path)
 
     if args.subparsers == "backup":
-        common.backup(backend, args.src, args.hmac_key)
+        common.backup(backend, args.src, args.tag)
     if args.subparsers == "restore":
         common.restore(backend, args.dst, args.backup_id)
     if args.subparsers == "gc":
