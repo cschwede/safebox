@@ -84,10 +84,10 @@ class TestBackupRestore(unittest.TestCase):
             for filename in entry.diff_files:
                 old_filename = os.path.join(self.backup_dir, subdir, filename)
                 old_stat = os.lstat(old_filename)
-                old_hash = sha256_file(old_filename)
+                old_hash = utils.sha256_file(old_filename)
                 new_filename = os.path.join(self.restore_dir, subdir, filename)
                 new_stat = os.lstat(new_filename)
-                new_hash = sha256_file(new_filename)
+                new_hash = utils.sha256_file(new_filename)
                 print "File differs: %s, %s -> %s, %s" % (
                     old_stat, old_hash, new_stat, new_hash)
             self.assertFalse(entry.diff_files)
