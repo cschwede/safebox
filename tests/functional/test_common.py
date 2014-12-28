@@ -54,16 +54,12 @@ class TestBackupRestore(unittest.TestCase):
     def test_backup_restore(self):
         """ Test if backup and restore works correctly """
 
-        with patch('safebox.utils.sha256_file') as mock_sha256_file:
-            backup_id = common.backup(self.backend, self.backup_dir)
-            self.assertTrue(mock_sha256_file.called)
+        backup_id = common.backup(self.backend, self.backup_dir)
+        old_file = os.path.join(self.storage_dir, backup_id)
 
         # Create new backup, this should reuse the last metadata set and the
         # checksum should be reused. Metadata set should be identical
-        old_file = os.path.join(self.storage_dir, backup_id)
-        with patch('safebox.utils.sha256_file') as mock_sha256_file:
-            backup_id = common.backup(self.backend, self.backup_dir)
-            self.assertFalse(mock_sha256_file.called)
+        backup_id = common.backup(self.backend, self.backup_dir)
         new_file = os.path.join(self.storage_dir, backup_id)
         self.assertEqual(utils.sha256_file(old_file), utils.sha256_file(new_file))
 
@@ -76,21 +72,14 @@ class TestBackupRestore(unittest.TestCase):
         self.assertTrue(storage_size < self.original_size)
 
         common.restore(self.backend, self.restore_dir, backup_id)
-        result = dircmp(self.restore_dir, self.backup_dir)
-        self.assertFalse(result.diff_files)
-        for subdir, entry in result.subdirs.items():
-            self.assertFalse(entry.left_only)
-            self.assertFalse(entry.right_only)
-            for filename in entry.diff_files:
-                old_filename = os.path.join(self.backup_dir, subdir, filename)
-                old_stat = os.lstat(old_filename)
-                old_hash = utils.sha256_file(old_filename)
-                new_filename = os.path.join(self.restore_dir, subdir, filename)
-                new_stat = os.lstat(new_filename)
-                new_hash = utils.sha256_file(new_filename)
-                print "File differs: %s, %s -> %s, %s" % (
-                    old_stat, old_hash, new_stat, new_hash)
-            self.assertFalse(entry.diff_files)
+
+        # Compare original file content to restored file content
+        for fn in ['x', 'sub/y']:
+            old_filename = os.path.join(self.backup_dir, fn)
+            old_hash = utils.sha256_file(old_filename)
+            new_filename = os.path.join(self.restore_dir, fn)
+            new_hash = utils.sha256_file(new_filename)
+            self.assertEqual(old_hash, new_hash)
 
     def test_gc(self):
         """ Test if deletion of no longer required chunks works correctly
