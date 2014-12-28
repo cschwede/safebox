@@ -48,6 +48,11 @@ class TestLocalStorage(unittest.TestCase):
         pathname, fullname = self.backend.fullname(objname)
         self.assertEqual(reference, fullname)
 
+        objname = "b-something"
+        reference = os.path.join(self.tempdir, "b", objname)
+        pathname, fullname = self.backend.fullname(objname)
+        self.assertEqual(reference, fullname)
+
 
 if __name__ == '__main__':
     unittest.main()

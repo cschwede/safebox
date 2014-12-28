@@ -35,7 +35,10 @@ class LocalStorage(object):
         identifiers.  For example, using an object with a name of
         c-af2bdbe1aa9b6ec1e2ade1d694f41f will be stored in
         c/f4/1f/c-af2bdbe1aa9b6ec1e2ade1d694f41f.  """
-        subpath = "%s/%s/%s" % (name[0], name[-4:-2], name[-2:])
+        if name[0] != "b":
+            subpath = "%s/%s/%s" % (name[0], name[-4:-2], name[-2:])
+        else:
+            subpath = "%s" % name[0]
         pathname = os.path.join(self.path, subpath)
         fullname = os.path.join(pathname, name)
         return (pathname, fullname)
