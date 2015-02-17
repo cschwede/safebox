@@ -48,7 +48,7 @@ def backup(backend, src, tag="default"):
     files = utils.find_modified_files(path)
     for filename, meta in files.items():
         # Assume file is unchanged if neither mtime nor size is changed
-        old = old_meta_data.get(filename)
+        old = old_meta_data.get(unicode(filename, 'utf-8'))
         if old and old['m'] == meta['m'] and old['s'] == meta['s']:
             old_checksum = old.get('c')
             if old_checksum:

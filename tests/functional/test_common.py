@@ -21,7 +21,7 @@ import tempfile
 import unittest
 from filecmp import dircmp
 
-from mock import patch
+import mock
 from safebox import backends, common, utils
 
 
@@ -41,7 +41,7 @@ class TestBackupRestore(unittest.TestCase):
             tmpfile.write(part_1 + part_2a + part_3)
         self.subdir = os.path.join(self.backup_dir, 'sub')
         os.mkdir(self.subdir)
-        self.subfile = os.path.join(self.subdir, 'y')
+        self.subfile = os.path.join(self.subdir, 'o\xcc\x88')
         with open(self.subfile, "wb") as tmpfile:
             tmpfile.write(part_1 + part_2b + part_3)
         self.backend = backends.LocalStorage(self.storage_dir)
@@ -59,7 +59,9 @@ class TestBackupRestore(unittest.TestCase):
 
         # Create new backup, this should reuse the last metadata set and the
         # checksum should be reused. Metadata set should be identical
-        backup_id = common.backup(self.backend, self.backup_dir)
+        with mock.patch('logging.info') as mock_log:
+            backup_id = common.backup(self.backend, self.backup_dir)
+            mock_log.assert_any_call('Skipped unchanged sub/o\xcc\x88')
         new_file = os.path.join(self.storage_dir, backup_id)
         self.assertEqual(utils.sha256_file(old_file), utils.sha256_file(new_file))
 
