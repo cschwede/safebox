@@ -68,3 +68,12 @@ def stat2dict(stat):
             'g': stat.st_gid,
             'm': stat.st_mtime,
             'p': stat.st_mode}
+
+
+def sizeof_fmt(num):
+    unit = "B"
+    for u in ['kB','MB','GB','TB']:
+        if abs(num) >= 1000.0:
+            num /= 1000.0
+            unit = u
+    return "%3.1f %s" % (num, unit)

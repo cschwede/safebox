@@ -156,3 +156,25 @@ def gc(backend):
             removed.append(obj)
             logging.info("Removed obj %s" % obj)
     return removed
+
+
+def list_backups(backend, path, backup_id=None):
+    backups = backend.list(prefix="b-*")
+    for backup in backups:
+        backup_name = os.path.basename(backup)
+        if backup_id is None:
+            print backup_name
+        else:
+            if backup_name == backup_id:
+                om = backend.get(backup_id)
+                om = bz2.decompress(om)
+                try:
+                    old_meta_data = json.loads(om)
+                except ValueError:
+                    pass
+                for name in sorted(old_meta_data):
+                    meta = old_meta_data.get(name)
+                    datestring = time.strftime(
+                        "%d %b %Y %H:%M:%S", time.localtime(meta.get('m')))
+                    size = utils.sizeof_fmt(meta.get('s'))
+                    print u"%20s %10s %s" % (datestring, size, name)

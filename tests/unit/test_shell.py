@@ -79,3 +79,23 @@ class TestShell(unittest.TestCase):
         self.assertEqual("dst", mock_restore.call_args[0][1])
         self.assertEqual("backup_id", mock_restore.call_args[0][2])
         self.assertEqual("src", mock_backend.call_args[0][0])
+
+    @mock.patch('safebox.common.list_backups')
+    @mock.patch('safebox.backends.LocalStorage')
+    def test_list(self, mock_backend, mock_list):
+        """ Test if list args are parsed correctly """
+
+        # Not enough args
+        argv = ["", "list"]
+        self.assertRaises(SystemExit, shell.main, argv)
+
+        argv = ["", "list", "src"]
+        shell.main(argv)
+        mock_list.assert_called_once()
+        self.assertEqual("src", mock_list.call_args[0][1])
+        print mock_list.call_args
+
+        argv = ["", "list", "src", "--backup-id", "b-dummy"]
+        shell.main(argv)
+        mock_list.assert_called_once()
+        self.assertEqual("b-dummy", mock_list.call_args[0][2])

@@ -40,6 +40,14 @@ class TestUtils(unittest.TestCase):
         self.assertTrue('sub/' in files)
         self.assertTrue('sub/file' in files)
 
+    def test_sizeof_fmt(self):
+        self.assertEqual('1.0 B', utils.sizeof_fmt(1))
+        self.assertEqual('1.0 kB', utils.sizeof_fmt(10**3))
+        self.assertEqual('1.0 MB', utils.sizeof_fmt(10**6))
+        self.assertEqual('1.0 GB', utils.sizeof_fmt(10**9))
+        self.assertEqual('1.0 TB', utils.sizeof_fmt(10**12))
+        self.assertEqual('1000.0 TB', utils.sizeof_fmt(10**15))
+
 
 if __name__ == '__main__':
     unittest.main()

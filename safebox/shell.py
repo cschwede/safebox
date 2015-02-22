@@ -45,6 +45,13 @@ def main(argv=sys.argv):
     parser_restore.add_argument(
         'path', action="store", type=str, help='Backup path')
 
+    parser_list = subparsers.add_parser(
+        'list', help='List backups')
+    parser_list.add_argument(
+        'path', action="store", type=str, help='Backup path')
+    parser_list.add_argument(
+        '--backup-id', action="store", type=str, help='Backup ID')
+
     args = parser.parse_args(argv[1:])
 
     path = os.path.expanduser(args.path)
@@ -56,3 +63,5 @@ def main(argv=sys.argv):
         common.restore(backend, args.dst, args.backup_id)
     if args.subparsers == "gc":
         common.gc(backend)
+    if args.subparsers == "list":
+        common.list_backups(backend, args.path, args.backup_id)
