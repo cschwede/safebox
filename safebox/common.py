@@ -46,6 +46,7 @@ def backup(backend, src, tag="default"):
     start_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
     path = os.path.expanduser(src)
     files = utils.find_modified_files(path)
+    chunk_size = chunk_count = changed_bytes = 0
     for filename, meta in files.items():
         # Assume file is unchanged if neither mtime nor size is changed
         old = old_meta_data.get(unicode(filename, 'utf-8'))
@@ -74,7 +75,11 @@ def backup(backend, src, tag="default"):
                 name = "c-%s" % chunk_checksum
                 chunk_checksums.append(chunk_checksum)
                 data = bz2.compress(data)
-                backend.put(name, data)
+                stored = backend.put(name, data)
+                changed_bytes += len(data)
+                if stored:
+                    chunk_size += len(data)
+                    chunk_count += 1
         name = "o-%s" % checksum
         backend.put(name, ';'.join(chunk_checksums))
 
@@ -87,7 +92,10 @@ def backup(backend, src, tag="default"):
     suffix = ''.join(random.choice(ascii_letters + digits) for _ in range(8))
     backup_id = "b-%s-%s-%s" % (tag, start_time, suffix)
     backend.put(backup_id, meta_data)
-    logging.info("Finished backup %s" % backup_id)
+    logging.info("Finished backup %s. %s bytes changed" % (
+                 backup_id, changed_bytes))
+    logging.info("Stored %s new objects with a total size of %s bytes" % (
+                 chunk_count, chunk_size))
     return backup_id
 
 

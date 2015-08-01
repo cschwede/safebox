@@ -51,6 +51,8 @@ class LocalStorage(object):
         if not os.path.exists(filename):
             with open(filename, "wb") as outfile:
                 outfile.write(data)
+                return True
+        return False
 
     def get(self, name):
         """ Read an object """
