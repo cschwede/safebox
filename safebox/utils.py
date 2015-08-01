@@ -77,3 +77,6 @@ def sizeof_fmt(num):
             num /= 1000.0
             unit = u
     return "%3.1f %s" % (num, unit)
+
+
+newest_backup_id = lambda list_of_backups: os.path.basename(list_of_backups[-1])

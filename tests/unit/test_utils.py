@@ -48,6 +48,10 @@ class TestUtils(unittest.TestCase):
         self.assertEqual('1.0 TB', utils.sizeof_fmt(10**12))
         self.assertEqual('1000.0 TB', utils.sizeof_fmt(10**15))
 
+    def test_newest_backup_id(self):
+        self.assertEqual('b-1', utils.newest_backup_id(['b-1', ]))
+        self.assertEqual('b-2', utils.newest_backup_id(['b-1', 'b-2']))
+        self.assertEqual('b-2', utils.newest_backup_id(['b-1', 'a/b/c/b-2']))
 
 if __name__ == '__main__':
     unittest.main()

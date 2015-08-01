@@ -35,7 +35,7 @@ def backup(backend, src, tag="default"):
     old_backups = backend.list(prefix="b-*")
     old_meta_data = {}
     if old_backups:
-        backup_id = old_backups[-1] # latest id
+        backup_id = utils.newest_backup_id(old_backups)
         om = backend.get(backup_id)
         om = bz2.decompress(om)
         try:
