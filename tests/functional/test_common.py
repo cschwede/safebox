@@ -31,6 +31,7 @@ class TestBackupRestore(unittest.TestCase):
         self.storage_dir = tempfile.mkdtemp()
         self.restore_dir = tempfile.mkdtemp()
         self.tempfile = os.path.join(self.backup_dir, 'x')
+        self.tempfile2 = os.path.join(self.backup_dir, 'z')
         part_1 = os.urandom(200000)
         part_2a = os.urandom(10000)
         part_2b = os.urandom(10000)
@@ -44,6 +45,9 @@ class TestBackupRestore(unittest.TestCase):
         self.subfile = os.path.join(self.subdir, 'o\xcc\x88')
         with open(self.subfile, "wb") as tmpfile:
             tmpfile.write(part_1 + part_2b + part_3)
+        with open(self.tempfile2, "wb") as tmpfile:
+            tmpfile.write("")
+
         self.backend = backends.LocalStorage(self.storage_dir)
 
     def tearDown(self):

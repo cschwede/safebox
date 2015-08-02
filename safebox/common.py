@@ -80,11 +80,12 @@ def backup(backend, src, tag="default"):
                 if stored:
                     chunk_size += len(data)
                     chunk_count += 1
-
-        checksum = my_sha256.hexdigest()
-        name = "o-%s" % checksum
-        backend.put(name, ';'.join(chunk_checksums))
-
+        if len(chunk_checksums) > 1:
+            checksum = my_sha256.hexdigest()
+            name = "o-%s" % checksum
+            backend.put(name, ';'.join(chunk_checksums))
+        else:
+            name = "c-%s" % chunk_checksums[0]
         meta['c'] = name
         logging.info(fullname)
 
@@ -116,9 +117,13 @@ def restore(backend, dst, backup_id):
         if S_ISREG(entry['p']):
             with open(dst_filename, "wb") as outfile:
                 checksum = entry['c']
-                list_of_chunks = backend.get(checksum)
-                for chunk in list_of_chunks.split(';'):
-                    data = backend.get("c-" + chunk)
+                if checksum.startswith('o-'):
+                    list_of_chunks = backend.get(checksum)
+                    for chunk in list_of_chunks.split(';'):
+                        data = backend.get("c-" + chunk)
+                        outfile.write(data)
+                else:
+                    data = backend.get(checksum)
                     outfile.write(data)
 
         # Set mtime, owner, group, permissisons
