@@ -17,6 +17,7 @@ limitations under the License.
 """
 from datetime import datetime
 from string import ascii_letters, digits
+import hashlib
 import json
 import logging
 import os
@@ -56,9 +57,10 @@ def backup(backend, src, tag="default"):
             continue
 
         fullname = os.path.join(path, filename)
-        checksum = utils.sha256_file(fullname)
         if not S_ISREG(meta['p']):  # not a file
             continue
+
+        my_sha256 = hashlib.sha256()
 
         chunk_checksums = []
         try:
@@ -69,6 +71,7 @@ def backup(backend, src, tag="default"):
         with open(fullname) as infile:
             for chunksize in chunks:
                 data = infile.read(chunksize)
+                my_sha256.update(data)
                 chunk_checksum = utils.sha256_string(data)
                 name = "c-%s" % chunk_checksum
                 chunk_checksums.append(chunk_checksum)
@@ -77,6 +80,8 @@ def backup(backend, src, tag="default"):
                 if stored:
                     chunk_size += len(data)
                     chunk_count += 1
+
+        checksum = my_sha256.hexdigest()
         name = "o-%s" % checksum
         backend.put(name, ';'.join(chunk_checksums))
 
