@@ -15,6 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+import bz2
 import fnmatch
 import os
 
@@ -50,7 +51,7 @@ class LocalStorage(object):
             os.makedirs(pathname)
         if not os.path.exists(filename):
             with open(filename, "wb") as outfile:
-                outfile.write(data)
+                outfile.write(bz2.compress(data))
                 return True
         return False
 
@@ -58,7 +59,8 @@ class LocalStorage(object):
         """ Read an object """
         pathname, filename = self.fullname(name)
         with open(filename) as infile:
-            return infile.read()
+            data = infile.read()
+            return bz2.decompress(data)
 
     def delete(self, name):
         """ Delete an object """

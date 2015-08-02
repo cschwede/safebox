@@ -15,7 +15,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-import bz2
 from datetime import datetime
 from string import ascii_letters, digits
 import json
@@ -37,7 +36,6 @@ def backup(backend, src, tag="default"):
     if old_backups:
         backup_id = utils.newest_backup_id(old_backups)
         om = backend.get(backup_id)
-        om = bz2.decompress(om)
         try:
             old_meta_data = json.loads(om)
         except ValueError:
@@ -74,7 +72,6 @@ def backup(backend, src, tag="default"):
                 chunk_checksum = utils.sha256_string(data)
                 name = "c-%s" % chunk_checksum
                 chunk_checksums.append(chunk_checksum)
-                data = bz2.compress(data)
                 stored = backend.put(name, data)
                 changed_bytes += len(data)
                 if stored:
@@ -87,8 +84,7 @@ def backup(backend, src, tag="default"):
         logging.info(fullname)
 
     # write backup summary
-    j = json.dumps(files)
-    meta_data = bz2.compress(j)
+    meta_data = json.dumps(files)
     suffix = ''.join(random.choice(ascii_letters + digits) for _ in range(8))
     backup_id = "b-%s-%s-%s" % (tag, start_time, suffix)
     backend.put(backup_id, meta_data)
@@ -102,7 +98,6 @@ def backup(backend, src, tag="default"):
 def restore(backend, dst, backup_id):
     dst = os.path.expanduser(dst)
     meta_data = backend.get(backup_id)
-    meta_data = bz2.decompress(meta_data)
     meta_data = json.loads(meta_data)
     # sort to update directory mtime after files
     for filename in sorted(meta_data, reverse=True):
@@ -119,7 +114,6 @@ def restore(backend, dst, backup_id):
                 list_of_chunks = backend.get(checksum)
                 for chunk in list_of_chunks.split(';'):
                     data = backend.get("c-" + chunk)
-                    data = bz2.decompress(data)
                     outfile.write(data)
 
         # Set mtime, owner, group, permissisons
@@ -135,7 +129,6 @@ def gc(backend):
     needed_objs = []
     for backup in backups:
         meta_data = backend.get(backup)
-        meta_data = bz2.decompress(meta_data)
         meta_data = json.loads(meta_data)
         for _, entry in meta_data.items():
             content = entry.get('c', '')
@@ -175,7 +168,6 @@ def list_backups(backend, path, backup_id=None):
         else:
             if backup_name == backup_id:
                 om = backend.get(backup_id)
-                om = bz2.decompress(om)
                 try:
                     old_meta_data = json.loads(om)
                 except ValueError:
